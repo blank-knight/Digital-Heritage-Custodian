@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ethers } from 'ethers'
 import toast from 'react-hot-toast'
-import { getContractAddress } from '../config/contractConfig'
 
 // 合约ABI（简化版）
 const CONTRACT_ABI = [
@@ -15,17 +14,12 @@ const CONTRACT_ABI = [
   "function getValidatorConfirmation(address owner, address validator) external view returns (bool)"
 ]
 
-// Monad测试网配置
-const MONAD_TESTNET = {
-  chainId: '0x279F', // 10143
-  chainName: 'Monad Testnet',
-  rpcUrls: ['https://testnet-rpc.monad.xyz'],
-  blockExplorerUrls: ['https://monad-testnet.socialscan.io/'],
-  nativeCurrency: {
-    name: 'Monad',
-    symbol: 'MON',
-    decimals: 18
-  }
+// 本地Hardhat网络配置
+const LOCAL_NETWORK = {
+  chainId: '0x7a69', // 31337
+  chainName: 'Hardhat Local',
+  rpcUrls: ['http://127.0.0.1:8545'],
+  blockExplorerUrls: []
 }
 
 export function useWeb3() {
@@ -82,30 +76,16 @@ export function useWeb3() {
       const provider = new ethers.BrowserProvider(window.ethereum)
       const signer = await provider.getSigner()
       
-      // 获取合约地址配置
-      const contractConfig = getContractAddress()
-      const contractAddress = contractConfig.DIGITAL_HERITAGE_ADDRESS
+      // 这里需要替换为实际的合约地址
+      const contractAddress = '0x...' // 部署后更新
+      const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, signer)
+
+      setAccount(accounts[0])
+      setProvider(provider)
+      setContract(contract)
+      setIsConnected(true)
       
-      // 检查合约地址是否有效
-      if (contractAddress === '0x0000000000000000000000000000000000000000') {
-        // 合约地址未设置，仍然可以连接钱包，但会提示用户
-        setAccount(accounts[0])
-        setProvider(provider)
-        setContract(null)
-        setIsConnected(true)
-        toast.success('钱包连接成功，但合约地址未配置')
-        toast.error('请联系管理员配置合约地址')
-      } else {
-        // 合约地址有效，创建合约实例
-        const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, signer)
-        
-        setAccount(accounts[0])
-        setProvider(provider)
-        setContract(contract)
-        setIsConnected(true)
-        
-        toast.success('钱包连接成功')
-      }
+      toast.success('钱包连接成功')
     } catch (error) {
       console.error('连接钱包失败:', error)
       toast.error('连接钱包失败: ' + error.message)

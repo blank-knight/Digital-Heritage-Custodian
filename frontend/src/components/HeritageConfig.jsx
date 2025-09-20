@@ -48,6 +48,27 @@ function HeritageConfig({ contract, account, onConfigComplete }) {
       return
     }
 
+    // 检查验证者地址是否重复
+    const uniqueValidators = [...new Set(validators)]
+    if (uniqueValidators.length !== validators.length) {
+      toast.error('验证者地址不能重复')
+      return
+    }
+
+    // 检查验证者地址格式
+    const addressRegex = /^0x[a-fA-F0-9]{40}$/
+    if (!addressRegex.test(heir)) {
+      toast.error('继承人地址格式不正确')
+      return
+    }
+
+    for (const validator of validators) {
+      if (!addressRegex.test(validator)) {
+        toast.error('验证者地址格式不正确')
+        return
+      }
+    }
+
     try {
       setLoading(true)
       
@@ -61,7 +82,12 @@ function HeritageConfig({ contract, account, onConfigComplete }) {
       onConfigComplete()
     } catch (error) {
       console.error('配置失败:', error)
-      toast.error('配置失败: ' + error.message)
+      // 增强错误处理，提供更具体的错误信息
+      let errorMessage = '配置失败: ' + error.message
+      if (error.message.includes('require(false)')) {
+        errorMessage += '\n可能的原因：\n1. 验证者数量不足（至少需要2个）\n2. 继承人或验证者地址格式不正确\n3. 您选择了自己作为验证者\n4. 您选择了继承人作为验证者\n5. 验证者地址有重复'
+      }
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -110,44 +136,33 @@ function HeritageConfig({ contract, account, onConfigComplete }) {
                   value={validator}
                   onChange={(e) => updateValidator(index, e.target.value)}
                   placeholder="0x..."
-                  className="input-field flex-1"
+                  className="input-field flex-grow"
                   required
                 />
                 {validators.length > 2 && (
                   <button
                     type="button"
                     onClick={() => removeValidator(index)}
-                    className="px-3 py-2 text-red-600 hover:text-red-700"
+                    className="btn-secondary whitespace-nowrap"
                   >
-                    删除
+                    移除
                   </button>
                 )}
               </div>
             ))}
+            {validators.length < 5 && (
+              <button
+                type="button"
+                onClick={addValidator}
+                className="btn-secondary"
+              >
+                添加验证者
+              </button>
+            )}
           </div>
-          
-          {validators.length < 5 && (
-            <button
-              type="button"
-              onClick={addValidator}
-              className="mt-2 text-sm text-primary-600 hover:text-primary-700"
-            >
-              + 添加验证者
-            </button>
-          )}
-          
-          <p className="text-xs text-gray-500 mt-1">
-            验证者将确认您的死亡状态并启动继承流程
-          </p>
-        </div>
-
-        {/* 配置说明 */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-900 mb-2">配置说明</h3>
-          <ul className="text-xs text-blue-800 space-y-1">
-            <li>• 90天无活动将自动触发继承流程</li>
-            <li>• 需要至少2个验证者确认才能执行继承</li>
-            <li>• 配置后可以随时更新活动状态</li>
+          <ul className="text-xs text-gray-500 mt-2 space-y-1">
+            <li>• 至少需要2个验证者</li>
+            <li>• 验证者不能是您自己或继承人</li>
             <li>• 建议选择可信的家人或朋友作为验证者</li>
           </ul>
         </div>
