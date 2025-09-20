@@ -1,0 +1,22 @@
+{
+  "name": "digital-heritage-custodian",
+  "version": "1.0.0",
+  "description": "Digital Heritage Custodian - MVP for digital asset inheritance",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:contracts\" \"npm run dev:frontend\"",
+    "dev:contracts": "cd contracts && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:contracts && npm run build:frontend",
+    "build:contracts": "cd contracts && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "deploy": "cd contracts && npm run deploy",
+    "test": "cd contracts && npm run test"
+  },
+  "keywords": ["blockchain", "inheritance", "digital-assets", "monad", "web3"],
+  "author": "Digital Heritage Custodian Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
